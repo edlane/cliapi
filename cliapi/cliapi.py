@@ -14,7 +14,7 @@ import pkgutil
 import getopt
 import json
 
-import providers
+import cliapi.providers as providers
 
 prefix = providers.__name__ + '.'
 

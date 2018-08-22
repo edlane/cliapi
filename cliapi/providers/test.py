@@ -1,5 +1,5 @@
 
-from cliapi_lib import Provider, cliapi_decor
+from cliapi.cliapi_lib import Provider, cliapi_decor
 
 provider = Provider()
 
