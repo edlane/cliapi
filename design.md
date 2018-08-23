@@ -26,7 +26,8 @@ with "metadata" rather than breaking them into separate CLIs. e.g "cloud-service
 
 **Proposition 1:**
 
-Implement azuremetadata entirely using Salt's metadata grains module
+This is mostly a solved problem with Salt's grain module [https://github.com/saltstack/salt/blob/develop/salt/grains/metadata.py]
+- Implement azuremetadata entirely using Salt's metadata grains module
 - extend grains module to support azure cloud. (~40 LOC)
 - add "cloud-service" or other SUSE required functionality (~20 LOC)
 - replace other parts of Enceladus by Salt when duplicate functionality exists.
