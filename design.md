@@ -30,7 +30,7 @@ more of an API than an ad-hoc query tool.
 
 **Proposition 1:**
 
-- This is mostly a solved problem with Salt's grain module [https://github.com/saltstack/salt/blob/develop/salt/grains/metadata.py]
+- This is mostly a solved problem with Salt's grain module <https://github.com/saltstack/salt/blob/develop/salt/grains/metadata.py>
 so implement azuremetadata entirely using Salt's metadata grains module
 - extend grains module to support azure cloud. (currently missing ~40 LOC)
 - add "cloud-service" or other SUSE required functionality as custom grains (~20 LOC)
