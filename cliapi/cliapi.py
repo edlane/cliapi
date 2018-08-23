@@ -1,10 +1,23 @@
 #!/usr/bin/python3
 
+# Guide for cliapi developers found here:
+# https://github.com/edlane/cliapi/blob/master/README.md
+
 import os
 if 'PYCHARM_DEBUG_ME' in os.environ:
     import pydevd
-    # connect pycharm debugger with:
-    # bash> PYCHARM_DEBUGME= cliapi ....
+    # we want debugging enabled up top because much of the cliapi framework
+    # "import-meta-magic" happens before __main__() has ever been called...
+    #
+    # Remote debugging session enabled in cloud environments
+    # by establishing a reverse ssh tunnel with bash:
+    #
+    #   local_host> ssh -R 8282:localhost:8282 lane@remote_host
+    #
+    # Then connect back to your local pycharm debugger with:
+    #
+    #   remote_host> PYCHARM_DEBUG_ME= cliapi [various options]...
+    #
     pydevd.settrace('localhost', port=8282, stdoutToServer=True,
                     stderrToServer=True)
 
@@ -15,6 +28,7 @@ import getopt
 import json
 
 import cliapi.providers as providers
+from cliapi.cliapi_lib import Provider
 
 prefix = providers.__name__ + '.'
 
@@ -31,7 +45,7 @@ for pro in all_providers:
     except Exception as e:
         pass
 
-# TODO: does "xml_out" really need to be implemented in a modern Devops world???
+# TODO: does "xml-out" really need to be implemented in a modern Devops world???
 cli_options = ['help',
                'provider=',
                'list-providers',
@@ -65,9 +79,14 @@ def _print_help(provider):
         'all': 'output all API results for specified API options or defaults',
     }
 
-    vpp = valid_providers[provider].provider
-    # update help with options from this provider...
-    help.update(vp.help)
+    if provider == None:
+        vpp = Provider()
+        # no provider supplied so at least print out the "common" help...
+        vpp.help = help
+    else:
+        vpp = valid_providers[provider].provider
+        # update help with options from this provider...
+        vpp.help.update(help)
     indent2_format = '  --{:<15}  {:<15}'
     print("usage: {} [display option#1]... [API option#1]... [CLI option]".format(sys.argv[0]))
     print("\n***[ {} ]*** provider Display options:".format(provider))
@@ -104,16 +123,21 @@ def main():
         print('valid providers =\n', json.dumps(list(valid_providers.keys()), indent=2))
         exit(0)
 
+    cmd_dict = {}
     if '--provider' in ct:
         # using supplied provider...
         provider = ct['--provider']
     else:
-        # using the first valid provider...
-        provider = list(valid_providers.keys())[0]
+        try:
+            # use the first valid provider in list...
+            provider = list(valid_providers.keys())[0]
+        except Exception as e:
+            # error -- print help and exit
+            print('No plugin providers found')
+            _print_help(None)
+            exit(-1)
 
-    cmd_dict = {}
     vpp = valid_providers[provider].provider
-
     all_opts = list(vpp.scoops.keys())
     options = []
     for k, v in vpp.options.items(): # process args...
@@ -138,7 +162,7 @@ def main():
 
         vpp.template.update(cmd_dict)
 
-        # use defaults if option NOT provided on CLI...
+        # use defaults if option NOT supplied in CLI...
         for default in options:
             ds = default.split('=')
             try:
@@ -182,7 +206,7 @@ def main():
                     # cmd_dict['help'] = None
                     # exit(-1)
             elif key == 'query':
-                data.append(_sandbox_eval(vpp, query))
+                data.append(_sandbox_eval(vpp, cmd_dict['query']))
         if len(data) == 1:
             # a single value was requested so no list is required...
             data = data[0]

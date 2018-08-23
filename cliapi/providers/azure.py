@@ -1,5 +1,5 @@
 from cliapi.cliapi_lib import Provider, cliapi_decor
-from what_cloud import determine_provider
+from cliapi.what_cloud import determine_provider
 
 import json
 import os

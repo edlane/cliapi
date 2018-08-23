@@ -22,10 +22,10 @@ class Provider(dict):
             #                {'__builtins__': None},
             #                {'item': item})[0][0]
             fetcher = self.fetchers[item].split('.')
-            provider = importlib.import_module('.'.join(fetcher[0:2]))
+            provider = importlib.import_module('.'.join(fetcher[0:3]))
 
             super().__setitem__(item, eval('provider.' +
-                                              Template(fetcher[2]).substitute(self.template)))
+                                              Template(fetcher[3]).substitute(self.template)))
             # restrict python's eval() functon -- No builtins, only "self" is accessible
             result = self.get(item)
             # result = eval("self" + item, {'__builtins__': None}, {'self': self})
