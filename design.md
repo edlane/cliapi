@@ -68,23 +68,23 @@ least for one instance in time before the inevitable "code drift" takes hold)
 - Create a common, extensible framework which will generate CLIs given a set of APIs
 described as python functions using introspection.
 - Enable backward compatibility by supporting all existing CLI options.
-- Enable forward flexibility by adding a query-language extension with allows recently
+- Enable forward flexibility by adding a query-language extension which allows recently
 added or previously unanticipated metadata API values to be queried.
 
 
 ### LOC Implementation Comparison for Proposal #3 above:
 **Note:** Admittedly comparing developer editable lines of code between different implementations
-is an unprecise activity but here is a worksheet used to prepare this report anyway...
+is an unprecise and debatable activity but here is a worksheet used to prepare this report anyway...
 
 
 https://docs.google.com/spreadsheets/d/1i_phns6QS3eCmsWFXWxxcafuNYXOEqG0ffxt6NHZysk/edit?usp=sharing
 
 **Total Dev Edited LOC for Existing Implementation:**
-```
-~2177 Total LOC = ec2metadata + azuremetadata(perl) + gcemetadata
-```
+
+**~2177 Total LOC** = ec2metadata + azuremetadata(perl) + gcemetadata
+
 
 **Total Dev Edited LOC for Proposal #3 Implementation from above**
-```
-~881 Total LOC = cliapi(framework actual) + azure(plugin actual) + gce(plugin estimate) + ec2(plugin estimate)
-```
+
+**~881 Total LOC** = cliapi(framework actual) + azure(plugin actual) + gce(plugin estimate) + ec2(plugin estimate)
+
