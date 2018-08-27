@@ -57,6 +57,8 @@ provides the _backing store_ for the contents of the top-level API dictionary.
 │   ├── providers               directory for plugin providers
 │   │   ├── __init__.py
 │   │   ├── azure.py            plugin for Azure APIs
+│   │   ├── <your plugin here>  ...your plugin goes here
+│   │   ├── ...                 ...additional plugins are automatically discovered
 │   │   └── test.py             plugin for Test APIs (an included "test" API for hacking)
 ├── design.md                   design considerations for cliapi
 ├── LICENSE                     provisional license (Apache2 is mutable into any other license)
@@ -150,7 +152,7 @@ ed-sle12sp3byos:/home/lane/cliapi # cliapi --all --provider=azure
 
 ```
 
-**example #4** - a sandboxed python query
+**example #4** - an ad-hock restricted python dictionary syntax query
 ```
 lane@suse-laptop:~/develop/garage/cliapi> cliapi --query="['meta_data']['compute']['offer']" --provider=test 
 "SLES-BYOS"
