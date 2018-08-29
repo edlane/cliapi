@@ -91,7 +91,6 @@ Common CLI options:
   --list-apis        list all available APIs for specified provider
   --query=           specify a python dictionary style query command
   --all              output all API results for specified API options or defaults
-  --pycharm-debug                   
 ```
 ---
 **example #2** - a predefined query option (default provider = azure)
