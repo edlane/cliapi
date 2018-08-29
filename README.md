@@ -152,7 +152,7 @@ ed-sle12sp3byos:/home/lane/cliapi # cliapi --all --provider=azure
 
 ```
 
-**example #4** - an ad-hock restricted python dictionary syntax query
+**example #4** - an ad-hoc restricted python dictionary syntax query
 ```
 lane@suse-laptop:~/develop/garage/cliapi> cliapi --query="['meta_data']['compute']['offer']" --provider=test 
 "SLES-BYOS"
