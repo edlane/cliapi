@@ -104,7 +104,7 @@ ed-sle12sp3byos:/home/lane/cliapi # cliapi --internal-ip
 ```
 ed-sle12sp3byos:/home/lane/cliapi # cliapi --all
 {
-  "tag": "391e4f53-b82d-5af5-8f58-dc1035e46e5e",
+  "tag": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
   "meta_data": {
     "network": {
       "interface": [
@@ -133,7 +133,7 @@ ed-sle12sp3byos:/home/lane/cliapi # cliapi --all
     "compute": {
       "offer": "SLES-BYOS",
       "publisher": "SUSE",
-      "subscriptionId": "ce73a2b0-d2e7-4ff6-b987-b32d6908de4e",
+      "subscriptionId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
       "name": "ed-sle12sp3byos",
       "platformUpdateDomain": "0",
       "version": "2018.02.21",
