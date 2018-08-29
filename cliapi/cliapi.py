@@ -201,12 +201,18 @@ def main():
                     data.append(_sandbox_eval(vpp, query))
                 except KeyError as e:
                     # error -- print help and exit
-                    print('required option --{} missing'.format(e.args[0]))
+                    print('required option -- "{}" missing'.format(e.args[0]))
                     _print_help(provider)
                     # cmd_dict['help'] = None
                     # exit(-1)
             elif key == 'query':
-                data.append(_sandbox_eval(vpp, cmd_dict['query']))
+                query = cmd_dict['query']
+                try:
+                    data.append(_sandbox_eval(vpp, query))
+                except SyntaxError as e:
+                    # error in query
+                    print('error in query -- "{}" syntax error'.format(query))
+                    _print_help(provider)
         if len(data) == 1:
             # a single value was requested so no list is required...
             data = data[0]
