@@ -51,7 +51,6 @@ cli_options = ['help',
                'list-providers',
                "list-apis",
                'query=', 'all',
-               'pycharm-debug',
                ]
                 # 'xml-out']
 
@@ -197,22 +196,25 @@ def main():
             # return all specified "data scoops"...
             if key in vpp.scoops:
                 query = vpp.scoops[key]
-                try:
-                    data.append(_sandbox_eval(vpp, query))
-                except KeyError as e:
-                    # error -- print help and exit
-                    print('required option -- "{}" missing'.format(e.args[0]))
-                    _print_help(provider)
-                    # cmd_dict['help'] = None
-                    # exit(-1)
             elif key == 'query':
                 query = cmd_dict['query']
-                try:
-                    data.append(_sandbox_eval(vpp, query))
-                except SyntaxError as e:
-                    # error in query
-                    print('error in query -- "{}" syntax error'.format(query))
-                    _print_help(provider)
+            else:
+                # ignore option, continue processing...
+                continue
+            try:
+                data.append(_sandbox_eval(vpp, query))
+            except KeyError as e:
+                # error -- print help and exit
+                print('required option -- "{}" missing'.format(e.args[0]))
+            except SyntaxError as e:
+                # error in query
+                print('error in query -- "{}" syntax error'.format(query))
+            else:
+                # no errors, continue processing...
+                continue
+            # must have encounered an error print help and abort...
+            _print_help(provider)
+
         if len(data) == 1:
             # a single value was requested so no list is required...
             data = data[0]

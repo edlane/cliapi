@@ -3,7 +3,7 @@ import importlib
 from string import Template
 
 class Provider(dict):
-    def __init__(self, fetchers={}):
+    def __init__(self):
         self.fetchers = {}
         self.scoops = {}
         self.options = {}
@@ -17,18 +17,22 @@ class Provider(dict):
         try:
             result = super().__getitem__(item)
         except KeyError:
-            # restrict python's  eval() function -- No builtins, only "item" is accessible
-            # api = eval('[' + item.replace(']', '],') + ']',
-            #                {'__builtins__': None},
-            #                {'item': item})[0][0]
-            fetcher = self.fetchers[item].split('.')
-            provider = importlib.import_module('.'.join(fetcher[0:3]))
+            fetcher = self.fetchers[item]
+            fetcher_function = fetcher[0].split('.')
+            # fetcher = self.fetchers[item].split('.')
+            provider = importlib.import_module('.'.join(fetcher_function[0:3]))
 
-            super().__setitem__(item, eval('provider.' +
-                                              Template(fetcher[3]).substitute(self.template)))
-            # restrict python's eval() functon -- No builtins, only "self" is accessible
+            arg_list = list()
+            kwarg_dict = dict()
+            for arg in fetcher[1][0]:
+                # build the *args tuple...
+                arg_list.append(Template(arg).substitute(self.template))
+            for key, value in fetcher[1][1].items():
+                # build the **kwargs dictionary...
+                kwarg_dict[key] = Template(value).substitute(self.template)
+            function = getattr(provider, fetcher_function[3])
+            super().__setitem__(item, function(*arg_list, **kwarg_dict))
             result = self.get(item)
-            # result = eval("self" + item, {'__builtins__': None}, {'self': self})
         return result
 
 
@@ -48,25 +52,25 @@ def cliapi_decor(prov, api_alias=None, scoops={}, options={}, help={}):
         else:
             default_count = len(argspec.defaults)
         last_arg = len(argspec.args) - default_count
-        argspec_string = '('
+        func_args = []
+        func_kwargs = {}
         for i, arg in enumerate(argspec.args):
             if i < last_arg:
                 # substitute CLI options...
                 arg = prov.options.get(arg, arg)
-                argspec_string += '\'' + arg + '\', '
+                func_args.append(arg)
             else:
                 default = argspec.defaults[i - last_arg]
                 # substitute CLI options...
-                # op_default = prov.options.get(arg, default)
                 op_default = prov.options.get(arg, default)
                 if op_default.startswith('$'):
                     prov.template[op_default[1:]] = default
-                argspec_string += arg + '=\'' + op_default + '\', '
+                func_kwargs[arg] = op_default
 
-        prov.fetchers.update({alias :
-                              func.__module__ + '.' +
-                              func.__name__ +
-                              argspec_string + ')'
+        prov.fetchers.update({alias:
+                                  (func.__module__ + '.' +
+                                   func.__name__,
+                                   (func_args, func_kwargs))
                               })
 
         def wrap_it(*args, **kwargs):
