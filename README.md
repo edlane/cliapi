@@ -56,10 +56,10 @@ provides the _backing store_ for the contents of the top-level API dictionary.
 │   └── what_cloud.py           module (useful for detecting which cloud plugins are valid)
 │   ├── providers               directory for plugin providers
 │   │   ├── __init__.py
-│   │   ├── azure.py            plugin for Azure APIs
+│   │   ├── azure.py            plugin for Azure/SUSE APIs
 │   │   ├── <your plugin here>  ...your plugin goes here
-│   │   ├── ...                 ...additional plugins are automatically discovered
-│   │   └── test.py             plugin for Test APIs (an included "test" API for hacking)
+│   │   ├── ...                 ...additional plugins are automatically discovered by cliapi
+│   │   └── test.py             ..."because it's not a framework without at least 2 plugins"
 ├── design.md                   design considerations for cliapi
 ├── LICENSE                     provisional license (Apache2 is mutable into any other license)
 ├── README.md                   this document
@@ -67,9 +67,10 @@ provides the _backing store_ for the contents of the top-level API dictionary.
 ```
 
 ### Examples:
-**example #1** - help (provider=azure and cliapi common)
+
+**example #1** - Common help AND plugin provider help (default provider = azure)
 ```
-ed-sle12sp3byos:/home/lane/cliapi # cliapi --help --provider=azure
+ed-sle12sp3byos:/home/lane/cliapi # cliapi --help
 usage: /usr/bin/cliapi [display option#1]... [API option#1]... [CLI option]
 
 ***[ azure ]*** provider Display options:
@@ -92,16 +93,16 @@ Common CLI options:
   --all              output all API results for specified API options or defaults
   --pycharm-debug                   
 ```
-
-**example #2** - a predefined query option
+---
+**example #2** - a predefined query option (default provider = azure)
 ```
-ed-sle12sp3byos:/home/lane/cliapi # cliapi --internal-ip --provider=azure
+ed-sle12sp3byos:/home/lane/cliapi # cliapi --internal-ip
 "172.16.3.8"
 ```
-
-**example #3** - all values returned by all provider APIs
+---
+**example #3** - all values returned by all APIs  (default provider = azure)
 ```
-ed-sle12sp3byos:/home/lane/cliapi # cliapi --all --provider=azure
+ed-sle12sp3byos:/home/lane/cliapi # cliapi --all
 {
   "tag": "391e4f53-b82d-5af5-8f58-dc1035e46e5e",
   "meta_data": {
@@ -149,23 +150,30 @@ ed-sle12sp3byos:/home/lane/cliapi # cliapi --all --provider=azure
   },
   "cloud-service": "__ed-sle12sp3byosService.cloudapp.net"
 }
-
 ```
-
-**example #4** - an ad-hoc restricted python dictionary syntax query
+---
+**example #4** - list of APIs supported by plugin provider (default provider = azure)
+```
+ed-sle12sp3byos:/home/lane/cliapi # cliapi --list-apis
+[
+  "tag",
+  "cloud-service",
+  "meta_data"
+]
+```
+---
+**example #5** - an ad-hoc restricted python dictionary syntax query (provider='test')
 ```
 lane@suse-laptop:~/develop/garage/cliapi> cliapi --query="['meta_data']['compute']['offer']" --provider=test 
 "SLES-BYOS"
-
 ```
-
-**example #5** - multiple queries (single CLI call)
+---
+**example #6** - mixed multiple queries with a single CLI call (provider='test')
 ```
 lane@suse-laptop:~/develop/garage/cliapi> cliapi --location --query="['meta_data']['compute']['offer']" --provider=test 
 [
   "westus",
   "SLES-BYOS"
 ]
-
 ```
 

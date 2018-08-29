@@ -81,10 +81,10 @@ https://docs.google.com/spreadsheets/d/1i_phns6QS3eCmsWFXWxxcafuNYXOEqG0ffxt6NHZ
 
 **Total Dev Edited LOC for Existing Implementation:**
 
-**~2177 Total LOC** = ec2metadata + azuremetadata(perl) + gcemetadata
+**`~2177 Total LOC`** = ec2metadata + azuremetadata(perl) + gcemetadata
 
 
 **Total Dev Edited LOC for Proposal #3 Implementation from above**
 
-**~881 Total LOC** = cliapi(framework actual) + azure(plugin actual) + gce(plugin estimate) + ec2(plugin estimate)
+**`~881 Total LOC`** = cliapi(framework actual) + azure(plugin actual) + gce(plugin estimate) + ec2(plugin estimate)
 
