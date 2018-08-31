@@ -81,14 +81,14 @@ usage: /usr/bin/cliapi [display option#1]... [API option#1]... [CLI option]
 
 ***[ azure ]*** provider Display options:
   --internal-ip                     
+  --location         region location
   --cloud-service    what           
   --instance-name    name of instance
-  --external-ip                     
   --mac              the MAC address for this interface
-  --location         region location
+  --external-ip                     
 
 ***[ azure ]*** provider API config options:
-  --api_version=     azure metadata api version, default = '2017-08-01'
+  --api_version=     default='2017-08-01', azure metadata api version
 
 Common CLI options:
   --help             help for this CLI command
@@ -109,8 +109,24 @@ ed-sle12sp3byos:/home/lane/cliapi # cliapi --internal-ip
 ```
 ed-sle12sp3byos:/home/lane/cliapi # cliapi --all
 {
-  "tag": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
   "meta_data": {
+    "compute": {
+      "location": "westus",
+      "vmSize": "Standard_B1ms",
+      "osType": "Linux",
+      "platformUpdateDomain": "0",
+      "sku": "12-SP3",
+      "name": "ed-sle12sp3byos",
+      "placementGroupId": "",
+      "resourceGroupName": "ed_lane",
+      "offer": "SLES-BYOS",
+      "vmId": "ce01dc32-6d0a-40bd-9534-a3509f768a53",
+      "tags": "",
+      "subscriptionId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+      "version": "2018.02.21",
+      "publisher": "SUSE",
+      "platformFaultDomain": "0"
+    },
     "network": {
       "interface": [
         {
@@ -126,40 +142,24 @@ ed-sle12sp3byos:/home/lane/cliapi # cliapi --all
             ],
             "subnet": [
               {
-                "address": "172.16.3.0",
-                "prefix": "24"
+                "prefix": "24",
+                "address": "172.16.3.0"
               }
             ]
           },
           "macAddress": "000D3A3AE8A5"
         }
       ]
-    },
-    "compute": {
-      "offer": "SLES-BYOS",
-      "publisher": "SUSE",
-      "subscriptionId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-      "name": "ed-sle12sp3byos",
-      "platformUpdateDomain": "0",
-      "version": "2018.02.21",
-      "placementGroupId": "",
-      "sku": "12-SP3",
-      "tags": "",
-      "vmId": "ce01dc32-6d0a-40bd-9534-a3509f768a53",
-      "resourceGroupName": "ed_lane",
-      "osType": "Linux",
-      "location": "westus",
-      "platformFaultDomain": "0",
-      "vmSize": "Standard_B1ms"
     }
   },
-  "cloud-service": "__ed-sle12sp3byosService.cloudapp.net"
+  "cloud-service": "__ed-sle12sp3byosService.cloudapp.net",
+  "tag": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 }
 ```
 ---
 **example #4** - list of valid plugin providers
 ```
-ed-sle12sp3byos:/home/lane/cliapi # cliapi --list-providers --provider=azure
+ed-sle12sp3byos:/home/lane/cliapi # cliapi --list-providers
 [
   "test",
   "azure"
