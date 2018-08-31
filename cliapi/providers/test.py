@@ -1,5 +1,5 @@
 
-from cliapi.cliapi_lib import Provider, cliapi_assembler
+from cliapi.cliapi_lib import Provider, cliapi_compile
 
 provider = Provider()
 
@@ -15,7 +15,7 @@ help = {
 
 options = dict(arg1='$smurf', key1='$dufus', key2='$dweebville',)
 
-@cliapi_assembler(provider, api_alias='test', scoops=scoops, help=help, options=options)
+@cliapi_compile(provider, api_alias='test', scoops=scoops, help=help, options=options)
 def foo(arg1, key1='bar', key2='baz'):
     return [arg1, key1, key2]
 
@@ -36,7 +36,7 @@ help = {
     'mac': 'the MAC address for this interface',
 }
 
-@cliapi_assembler(provider, api_alias='meta_data', scoops=scoops, help=help)
+@cliapi_compile(provider, api_alias='meta_data', scoops=scoops, help=help)
 def get_meta_data_mock():
     return {"compute": {"location": "westus",
                         "name": "ed-sle12sp3byos", "offer": "SLES-BYOS",
@@ -57,6 +57,6 @@ def get_meta_data_mock():
 
 options = dict(api_version='$api_version')
 
-@cliapi_assembler(provider, api_alias='some_stuff', scoops=scoops, help=help, options=options)
+@cliapi_compile(provider, api_alias='some_stuff', scoops=scoops, help=help, options=options)
 def get_stuff(api_version='2017-08-01'):
     return api_version

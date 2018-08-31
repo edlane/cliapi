@@ -54,7 +54,7 @@ class Provider(dict):
         return result
 
 
-def cliapi_assembler(prov, api_alias=None, scoops={}, options={}, help={}):
+def cliapi_compile(prov, api_alias=None, scoops={}, options={}, help={}):
     # Compile each API supported by the plugin provider as a python
     # function and assemble into the various dictionaries of
     # the "Provider" class.
