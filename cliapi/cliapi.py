@@ -102,9 +102,15 @@ def _print_help(provider):
         if v.startswith('$'):
             opt = v[1:]
             help = vpp.help.get(opt,'')
+            if help != '':
+                # help message is provided by plugin provider...
+                help = ''.join((', ', help) )
             if v in required:
-                # if this option is required, say so...
-                help = 'REQUIRED, ' + help
+                # if this option is required, then say so...
+                help = ''.join(('-REQUIRED-', help))
+            elif opt in vpp.template:
+                # otherwise display the default...
+                help = ''.join(('default=\'', vpp.template[opt], '\'', help))
 
             print (indent2_format.format(opt + '=', help))
     print("\nCommon CLI options:")
@@ -112,7 +118,7 @@ def _print_help(provider):
         # list of common CLI options supported by this module, across all providers
         print (indent2_format.format(key, vpp.help.get(key, '')))
 
-    exit(0)
+    exit(-1)
 
 
 def _sandbox_eval(vpp, lookup):
