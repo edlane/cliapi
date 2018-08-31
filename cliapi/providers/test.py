@@ -1,5 +1,5 @@
 
-from cliapi.cliapi_lib import Provider, cliapi_decor
+from cliapi.cliapi_lib import Provider, cliapi_assembler
 
 provider = Provider()
 
@@ -9,17 +9,16 @@ scoops = {
 }
 
 help = {
-    'smurf': 'required, what is smurf name?',
+    'smurf': 'what is smurf name?',
     'lorax': 'who is the lorax?',
     'dweebville': 'where is dweebville?',
 }
 
 options = dict(arg1='$smurf', key1='$dufus', key2='$dweebville',)
 
-@cliapi_decor(provider, api_alias='test', scoops=scoops, help=help, options=options)
-def dork(arg1, key1='foo', key2='bar'):
+@cliapi_assembler(provider, api_alias='test', scoops=scoops, help=help, options=options)
+def foo(arg1, key1='bar', key2='baz'):
     return [arg1, key1, key2]
-
 
 scoops = {
             'instance-name': "['meta_data']['compute']['name']",
@@ -29,6 +28,7 @@ scoops = {
                        "['ipv4']['ipAddress'][0]['publicIpAddress']",
             'internal-ip': "['meta_data']['network']['interface'][0]"
                            "['ipv4']['ipAddress'][0]['privateIpAddress']",
+            'always-fail':"['intentionally-fail']",
 }
 
 help = {
@@ -37,7 +37,7 @@ help = {
     'mac': 'the MAC address for this interface',
 }
 
-@cliapi_decor(provider, api_alias='meta_data', scoops=scoops, help=help)
+@cliapi_assembler(provider, api_alias='meta_data', scoops=scoops, help=help)
 def get_meta_data_mock():
     return {"compute": {"location": "westus",
                         "name": "ed-sle12sp3byos", "offer": "SLES-BYOS",
@@ -58,6 +58,6 @@ def get_meta_data_mock():
 
 options = dict(api_version='$api_version')
 
-@cliapi_decor(provider, api_alias='some_stuff', scoops=scoops, help=help, options=options)
+@cliapi_assembler(provider, api_alias='some_stuff', scoops=scoops, help=help, options=options)
 def get_stuff(api_version='2017-08-01'):
     return api_version

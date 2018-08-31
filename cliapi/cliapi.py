@@ -86,6 +86,10 @@ def _print_help(provider):
         vpp = valid_providers[provider].provider
         # update help with options from this provider...
         vpp.help.update(help)
+    required = list()
+    for fetcher in vpp.fetchers.items():
+        # create a list of required options for fast lookup...
+        required += fetcher[1][1][0]
     indent2_format = '  --{:<15}  {:<15}'
     print("usage: {} [display option#1]... [API option#1]... [CLI option]".format(sys.argv[0]))
     print("\n***[ {} ]*** provider Display options:".format(provider))
@@ -97,7 +101,12 @@ def _print_help(provider):
         # list API configuration options for this provider...
         if v.startswith('$'):
             opt = v[1:]
-            print (indent2_format.format(opt + '=', vpp.help.get(opt, '')))
+            help = vpp.help.get(opt,'')
+            if v in required:
+                # if this option is required, say so...
+                help = 'REQUIRED, ' + help
+
+            print (indent2_format.format(opt + '=', help))
     print("\nCommon CLI options:")
     for key in cli_options:
         # list of common CLI options supported by this module, across all providers
@@ -114,12 +123,12 @@ def _sandbox_eval(vpp, lookup):
 
 def main():
     # must do our own parsing here since we don't know the
-    # valid options until we establish the provider
+    # valid options until we establish the plugin provider
     # -- getopt() does not allow this usage...
     ct = _cli_parse(sys.argv[1:])
 
     if '--list-providers' in ct:
-        print('valid providers =\n', json.dumps(list(valid_providers.keys()), indent=2))
+        print(json.dumps(list(valid_providers.keys()), indent=2))
         exit(0)
 
     cmd_dict = {}
@@ -144,7 +153,7 @@ def main():
             options.append(v[1:] + '=')
     all_opts += options
 
-    # add "cli_options" to allowed CLI options...
+    # add "plugin cli_options" to the "common" CLI options...
     all_opts += cli_options
 
     try:
@@ -166,7 +175,7 @@ def main():
             ds = default.split('=')
             try:
                 if not cmd_dict.get(ds[0]):
-                    # override with default
+                    # override with default...
                     cmd_dict[ds[0]] = ds[1]
             except:
                 # no option to override or none specified -- ignore this...
@@ -183,11 +192,17 @@ def main():
     if 'all' in cmd_dict:
         # return a composite dictionary of all API calls...
         for fetch in vpp.fetchers:
-            # fetch all the APIs
+            # prefetch all the APIs...
             scoop = "['" + fetch + "']"
-            # must populate dictionary with a fake query...
-            query = _sandbox_eval(vpp, scoop)
-        # return all the API results as a dictionary
+            # must populate dictionary by walking the top-level API...
+            try:
+                query = _sandbox_eval(vpp, scoop)
+            except Exception as e:
+                # error caused by plugin developer...
+                print(e.args[0])
+                _print_help(provider)
+                exit(-1)
+        # return all the API results from dictionary...
         data = vpp
 
     else:
@@ -199,24 +214,34 @@ def main():
             elif key == 'query':
                 query = cmd_dict['query']
             else:
-                # ignore option, continue processing...
+                # Not a scoop or a query?
+                # then ignore option, continue processing...
                 continue
             try:
+                # accumulate all requested scoops
                 data.append(_sandbox_eval(vpp, query))
             except KeyError as e:
                 # error -- print help and exit
-                print('required option -- "{}" missing'.format(e.args[0]))
+                if key == 'query':
+                    # a bogus CLI option was input by user...
+                    print(('bad query -- "{}", no such item').format(query))
+                else:
+                    # a bogus scoop option was specified by plugin developer...
+                    print(('option {} -- "{}", bad plugin query').format(key, query))
+            except AssertionError as e:
+                # a required option is missing...
+                print(e.args[0])
             except SyntaxError as e:
-                # error in query
+                # a syntax error detected in query...
                 print('error in query -- "{}" syntax error'.format(query))
             else:
                 # no errors, continue processing...
                 continue
-            # must have encounered an error print help and abort...
+            # must have encountered an error, print help and abort...
             _print_help(provider)
 
         if len(data) == 1:
-            # a single value was requested so no list is required...
+            # a single value was returned so no list is returned...
             data = data[0]
 
     print(json.dumps(data, indent=2))
