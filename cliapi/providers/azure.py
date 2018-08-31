@@ -1,4 +1,4 @@
-from cliapi.cliapi_lib import Provider, cliapi_decor
+from cliapi.cliapi_lib import Provider, cliapi_assembler
 from cliapi.what_cloud import determine_provider
 
 import json
@@ -7,8 +7,8 @@ import uuid
 import urllib.request, urllib.error, urllib.parse
 import xml.etree.ElementTree as ET
 
-#----- raises an error on import if not running in a "proper" cloud...
 try:
+    # ----- raises an error on import if not running in a "proper" cloud...
     cp = determine_provider()
     if cp != 'azure':
         raise Exception("not a valid provider")
@@ -20,7 +20,7 @@ provider = Provider()
 scoops = {
     'instance-name': "['meta_data']['compute']['name']",
     'mac': "['meta_data']['network']['interface'][0]['macAddress']",
-    'location': "meta_data['compute']['location']",
+    'location': "['meta_data']['compute']['location']",
     'external-ip': "['meta_data']['network']['interface'][0]"
                    "['ipv4']['ipAddress'][0]['publicIpAddress']",
     'internal-ip': "['meta_data']['network']['interface'][0]"
@@ -38,7 +38,7 @@ help = {
 
 options = dict(api_version='$api_version')
 
-@cliapi_decor(provider, api_alias='meta_data', scoops=scoops, help=help, options=options)
+@cliapi_assembler(provider, api_alias='meta_data', scoops=scoops, help=help, options=options)
 def get_meta_data_azure(api_version='2017-08-01'):
     HEADERS = {'Metadata': 'true'}
     IP = '169.254.169.254'
@@ -49,7 +49,7 @@ def get_meta_data_azure(api_version='2017-08-01'):
     return result
 
 
-@cliapi_decor(provider, api_alias='cloud-service')
+@cliapi_assembler(provider, api_alias='cloud-service')
 def get_cloud_service():
     # tree = ET.parse('/home/lane/Downloads/SharedConfig.xml')
     tree = ET.parse('/var/lib/waagent/SharedConfig.xml')
@@ -58,7 +58,7 @@ def get_cloud_service():
     return cloud_service
 
 
-@cliapi_decor(provider, api_alias='tag')
+@cliapi_assembler(provider, api_alias='tag')
 def read_billing_guid(device='/dev/sda'):
     fd = os.open(device, os.O_RDONLY)
     os.lseek(fd, 65536, os.SEEK_SET)
