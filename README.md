@@ -1,4 +1,4 @@
-## GUIDE FOR CLIAPI DEVELOPERS:
+## Guide for CLIAPI Plugin Developers:
 **cliapi** ( pronounced _calliope_ ): A Python framework for creating Unix, "getopt()" style CLI scripts
 composed from an arbitrary set of APIs.
 
@@ -29,7 +29,10 @@ Several common commands are automatically inherited by all plugin providers:
 
 - multiple data queries within the same CLI will result in "at most" a single API call.
 
-### Key cliapi developer concepts:
+### Key cliapi plugin developer concepts:
+
+An example cliapi plugin provider for Azuremeta API + SUSE extensions can be found here:
+https://github.com/edlane/cliapi/blob/master/cliapi/providers/azure.py
 
 - **provider**:  an associated set of APIs accessed from the CLI in a particular context or cloud
  environment e.g. "azure", "gce", "ec2", ... but can essentially be any mix of apis
@@ -40,9 +43,12 @@ object, THEN it can easily become a configurable CLI query.  With the cliapi dec
 optional parameters are expressible through the CLI.  Help is also handled by the cliapi framework.
 
 - **scoops**: a dictionary which maps a CLI query name to a particular API data scoop. "scoops" are really just
-"_sandboxed_ python _eval()_" statements.  This allows scoops to be expressed as Python slices,
-comprehensions, ect.  It also allows restricted ad-hoc queries to be provided on the command line
-when a return value is not currently supported as an option in the CLI.
+"_sandboxed_ python _eval()_" statements.  This allows predefined scoops to be expressed as CLI options.
+It also allows for restricted ad-hoc queries to be provided on the command line when a return value is not
+currently supported as an option in the CLI.  The query uses Python's dictionary lookup syntax for slice
+slice**s** (See examples using **--query=** below).
+Python's _eval()_ function allows limiting access to a single data structure and "no builtins" through
+this facility:
 
 - **fetchers**: a dictionary which maps from a particular API name to the actual python function which
 provides the _backing store_ for the contents of the top-level API dictionary.
@@ -151,7 +157,16 @@ ed-sle12sp3byos:/home/lane/cliapi # cliapi --all
 }
 ```
 ---
-**example #4** - list of APIs supported by plugin provider (default provider = azure)
+**example #4** - list of valid plugin providers
+```
+ed-sle12sp3byos:/home/lane/cliapi # cliapi --list-providers --provider=azure
+[
+  "test",
+  "azure"
+]
+```
+---
+**example #5** - list of APIs supported by plugin provider (default provider = azure)
 ```
 ed-sle12sp3byos:/home/lane/cliapi # cliapi --list-apis
 [
@@ -161,13 +176,13 @@ ed-sle12sp3byos:/home/lane/cliapi # cliapi --list-apis
 ]
 ```
 ---
-**example #5** - an ad-hoc restricted python dictionary syntax query (provider='test')
+**example #6** - an ad-hoc restricted python dictionary syntax query (provider='test')
 ```
 lane@suse-laptop:~/develop/garage/cliapi> cliapi --query="['meta_data']['compute']['offer']" --provider=test 
 "SLES-BYOS"
 ```
 ---
-**example #6** - mixed multiple queries with a single CLI call (provider='test')
+**example #7** - mixed multiple queries with a single CLI call (provider='test')
 ```
 lane@suse-laptop:~/develop/garage/cliapi> cliapi --location --query="['meta_data']['compute']['offer']" --provider=test 
 [
