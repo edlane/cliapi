@@ -10,7 +10,6 @@ scoops = {
 
 help = {
     'smurf': 'what is smurf name?',
-    'lorax': 'who is the lorax?',
     'dweebville': 'where is dweebville?',
 }
 

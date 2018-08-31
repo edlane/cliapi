@@ -32,7 +32,7 @@ help = {
     'instance-name': 'name of instance',
     'location': 'region location',
     'mac': 'the MAC address for this interface',
-    'api_version': 'azure metadata api version, default = \'2017-08-01\'',
+    'api_version': 'azure metadata api version',
     'cloud-service': 'what'
 }
 
