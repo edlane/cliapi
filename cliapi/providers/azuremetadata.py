@@ -17,28 +17,10 @@ except Exception as e:
 
 provider = Provider()
 
-scoops = {
-    'instance-name': "['meta_data']['compute']['name']",
-    'mac': "['meta_data']['network']['interface'][0]['macAddress']",
-    'location': "['meta_data']['compute']['location']",
-    'external-ip': "['meta_data']['network']['interface'][0]"
-                   "['ipv4']['ipAddress'][0]['publicIpAddress']",
-    'internal-ip': "['meta_data']['network']['interface'][0]"
-                   "['ipv4']['ipAddress'][0]['privateIpAddress']",
-    'cloud-service': "['get_cloud_service']"
-}
-
-help = {
-    'instance-name': 'name of instance',
-    'location': 'region location',
-    'mac': 'the MAC address for this interface',
-    'api_version': 'azure metadata api version',
-    'cloud-service': 'what'
-}
-
 options = dict(api_version='$api_version')
 
-@cliapi_compile(provider, api_alias='meta_data', scoops=scoops, help=help, options=options)
+
+@cliapi_compile(provider, api_alias='meta_data', options=options)
 def get_meta_data_azure(api_version='2017-08-01'):
     HEADERS = {'Metadata': 'true'}
     IP = '169.254.169.254'

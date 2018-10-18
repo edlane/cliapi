@@ -21,8 +21,20 @@ Several common commands are automatically inherited by all plugin providers:
   - "**--provider=**" specify a particular provider plugin for all CLI commands.
   - "**--all**" Lists all data returned by all APIs supported by a single provider.
   - "**--list-apis**" Lists all the APIs available by a particular plugin provider.
-  - "**--query=**" extracts specified API data using a python-dictionary-restricted syntax.
+  - "**--item=**" Display an item from API by it's right-most JSON path specifier.  
+  For example:  
+    - "**--item=location**" will return the value for **meta_data.compute.location**
+    - "**--item=privateIpAddress**" will return a list of all keys ending in "**privateIpAddress**"  
+    to get a particular element from a list the item should be referenced using it's unique right-most JSON path name, **i.e**:   
+    ```
+    root # azuremetadata --item=interface[0].macAddress
+    "000D3A3AE8A5"
+    ```
 - other behaviors enforced by the cliapi framework:
+  - flexible provider handling based on the way cliapi is invoked:  
+    - if invoked using "cliapi" name then API provider defaults to first valid plugin imported.
+    - if invoked using _non-cliapi_ name then API provider defaults to the plugin provider with same _non-cliapi_ name.
+    - the default provider can be over ridden using "--provider=" config option.
   - error handling and help is also consistent across all plugin providers.
   - multiple queries in same command will return a JSON list in "option order" by default
   - single query will return a single JSON element.
@@ -42,14 +54,6 @@ a python function with an (_*args, **kwargs_) style calling convention AND it re
 object, THEN it can easily become a configurable CLI query.  With the cliapi decorator, both required and
 optional parameters are expressible through the CLI.  Help is also handled by the cliapi framework.
 
-- **scoops**: a dictionary which maps a CLI query name to a particular API data scoop. "scoops" are really just
-"_sandboxed_ python _eval()_" statements.  This allows predefined scoops to be expressed as CLI options.
-It also allows for restricted ad-hoc queries to be provided on the command line when a return value is not
-currently supported as an option in the CLI.  The query uses Python's dictionary lookup syntax for slice
-slice**s** (See examples using **--query=** below).
-Python's _eval()_ function allows limiting access to a single data structure and "no builtins" through
-this facility:
-
 - **fetchers**: a dictionary which maps from a particular API name to the actual python function which
 provides the _backing store_ for the contents of the top-level API dictionary.
 
@@ -62,7 +66,7 @@ provides the _backing store_ for the contents of the top-level API dictionary.
 │   └── what_cloud.py           module (useful for detecting which cloud plugins are valid)
 │   ├── providers               directory for plugin providers
 │   │   ├── __init__.py
-│   │   ├── azure.py            plugin for Azure/SUSE APIs
+│   │   ├── azuremetadata.py            plugin for Azure/SUSE APIs
 │   │   ├── <your plugin here>  ...your plugin goes here
 │   │   ├── ...                 ...additional plugins are automatically discovered by cliapi
 │   │   └── test.py             ..."because it's not a framework without at least 2 plugins"
@@ -74,101 +78,118 @@ provides the _backing store_ for the contents of the top-level API dictionary.
 
 ### Examples:
 
-**example #1** - Common help AND plugin provider help (default provider = azure)
+**example #1** - Common help AND plugin provider help
 ```
-ed-sle12sp3byos:/home/lane/cliapi # cliapi --help
-usage: /usr/bin/cliapi [display option#1]... [API option#1]... [CLI option]
+ed-sle12sp3byos:/home/lane/cliapi # azuremetadata --help
+usage: ./azuremetadata --item=[API display item #1]... [API config option#1]... [API required options]... [Common CLI options]...
 
-***[ azure ]*** provider Display options:
-  --internal-ip                     
-  --location         region location
-  --cloud-service    what           
-  --instance-name    name of instance
-  --mac              the MAC address for this interface
-  --external-ip                     
+***[ azuremetadata ]*** provider Display options:
+     cloud-service
+               privateIpAddress
+               publicIpAddress
+               address
+               prefix
+           macAddress
+         osType
+         version
+         placementGroupId
+         vmId
+         sku
+         platformUpdateDomain
+         subscriptionId
+         offer
+         name
+         tags
+         resourceGroupName
+         vmSize
+         publisher
+         platformFaultDomain
+         location
+     tag
 
-***[ azure ]*** provider API config options:
-  --api_version=     default='2017-08-01', azure metadata api version
+***[ azuremetadata ]*** provider API config options:
+  --api_version=     default='2017-08-01'
 
 Common CLI options:
-  --help             help for this CLI command
-  --provider=        specify name of provider module
-  --list-providers   list all available providers
   --list-apis        list all available APIs for specified provider
-  --query=           specify a python dictionary style query command
-  --all              output all API results for specified API options or defaults
+  --item=            value to return from an API using right-most path name specifier
+  --list-providers   list all available providers
+  --help             help for this CLI command
+  --all              output all API results for a specific provider
+  --provider=        specify name of provider module
+
 ```
 ---
-**example #2** - a predefined query option (default provider = azure)
+**example #2** - a single display item
 ```
-ed-sle12sp3byos:/home/lane/cliapi # cliapi --internal-ip
+ed-sle12sp3byos:/home/lane/cliapi # azuremetadata --item=privateIpAddress
 "172.16.3.8"
 ```
 ---
-**example #3** - all values returned by all APIs  (default provider = azure)
+**example #3** - all values returned by azuremetadata APIs
 ```
-ed-sle12sp3byos:/home/lane/cliapi # cliapi --all
+ed-sle12sp3byos:/home/lane/cliapi # ./azuremetadata --all
 {
   "meta_data": {
-    "compute": {
-      "location": "westus",
-      "vmSize": "Standard_B1ms",
-      "osType": "Linux",
-      "platformUpdateDomain": "0",
-      "sku": "12-SP3",
-      "name": "ed-sle12sp3byos",
-      "placementGroupId": "",
-      "resourceGroupName": "ed_lane",
-      "offer": "SLES-BYOS",
-      "vmId": "ce01dc32-6d0a-40bd-9534-a3509f768a53",
-      "tags": "",
-      "subscriptionId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-      "version": "2018.02.21",
-      "publisher": "SUSE",
-      "platformFaultDomain": "0"
-    },
     "network": {
       "interface": [
         {
-          "ipv6": {
-            "ipAddress": []
-          },
+          "macAddress": "000D3A3AE8A5",
           "ipv4": {
-            "ipAddress": [
-              {
-                "publicIpAddress": "40.112.253.198",
-                "privateIpAddress": "172.16.3.8"
-              }
-            ],
             "subnet": [
               {
-                "prefix": "24",
-                "address": "172.16.3.0"
+                "address": "172.16.3.0",
+                "prefix": "24"
+              }
+            ],
+            "ipAddress": [
+              {
+                "privateIpAddress": "172.16.3.8",
+                "publicIpAddress": "40.112.253.198"
               }
             ]
           },
-          "macAddress": "000D3A3AE8A5"
+          "ipv6": {
+            "ipAddress": []
+          }
         }
       ]
+    },
+    "compute": {
+      "offer": "SLES-BYOS",
+      "placementGroupId": "",
+      "publisher": "SUSE",
+      "sku": "12-SP3",
+      "osType": "Linux",
+      "platformFaultDomain": "0",
+      "platformUpdateDomain": "0",
+      "tags": "",
+      "vmSize": "Standard_B1ms",
+      "location": "westus",
+      "name": "ed-sle12sp3byos",
+      "subscriptionId": "ce73a2b0-d2e7-4ff6-b987-b32d6908de4e",
+      "version": "2018.02.21",
+      "vmId": "ce01dc32-6d0a-40bd-9534-a3509f768a53",
+      "resourceGroupName": "ed_lane"
     }
   },
   "cloud-service": "__ed-sle12sp3byosService.cloudapp.net",
-  "tag": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  "tag": "391e4f53-b82d-5af5-8f58-dc1035e46e5e"
 }
 ```
 ---
 **example #4** - list of valid plugin providers
 ```
-ed-sle12sp3byos:/home/lane/cliapi # cliapi --list-providers
+ed-sle12sp3byos:/home/lane/cliapi # azuremetadata --list-providers
 [
   "test",
-  "azure"
+  "azuremetadata"
 ]
 ```
 ---
-**example #5** - list of APIs supported by plugin provider (default provider = azure)
+**example #5** - list of APIs supported by plugin provider
 ```
-ed-sle12sp3byos:/home/lane/cliapi # cliapi --list-apis
+ed-sle12sp3byos:/home/lane/cliapi # azuremetadata --list-apis
 [
   "tag",
   "cloud-service",
@@ -176,18 +197,17 @@ ed-sle12sp3byos:/home/lane/cliapi # cliapi --list-apis
 ]
 ```
 ---
-**example #6** - an ad-hoc restricted python dictionary syntax query (provider='test')
+**example #6** - return several display items in single call
 ```
-lane@suse-laptop:~/develop/garage/cliapi> cliapi --query="['meta_data']['compute']['offer']" --provider=test 
-"SLES-BYOS"
-```
----
-**example #7** - mixed multiple queries with a single CLI call (provider='test')
-```
-lane@suse-laptop:~/develop/garage/cliapi> cliapi --location --query="['meta_data']['compute']['offer']" --provider=test 
+ed-sle12sp3byos:/home/lane/cliapi # ./azuremetadata --item=privateIpAddress --item=publisher --item=vmSize --item=location --item=name --item=offer --item=interface[0].macAddress
 [
+  "172.16.3.8",
+  "SUSE",
+  "Standard_B1ms",
   "westus",
-  "SLES-BYOS"
+  "ed-sle12sp3byos",
+  "SLES-BYOS",
+  "000D3A3AE8A5"
 ]
 ```
 

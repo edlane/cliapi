@@ -2,18 +2,26 @@ import inspect
 import importlib
 from string import Template
 
+
 class Provider(dict):
     # The Provider class overrides Python's dictionary with
     # an API-backing-store.
     # When a KeyError is encountered during lookup,
     # a fetcher, or "API call", is prepared with the appropriate CLI
     # options substituted as python function arguments.
-    # CLI "help" and predefined dictionary lookups, or "scoops",
-    # are also assembled in this class...
+
+    # offsets needed by framework to access the values in the
+    # "fetcher" dictionary...
+    FUNC_FULL_NAME = 0
+    FUNC_PARMS = 1
+    FUNC_ARGS = 0
+    FUNC_KWARGS = 1
+    FUNC_CALLABLE = 2
+    FUNC_NAME = 3
+    FUNC_REQUIRED = 0
 
     def __init__(self):
         self.fetchers = {}
-        self.scoops = {}
         self.options = {}
         self.help = {}
         self.template = {}
@@ -29,7 +37,7 @@ class Provider(dict):
             # so fetch it using the API which resolves to
             # the top level dictionary with that API key name...
             fetcher = self.fetchers[item]
-            fetcher_function = fetcher[0].split('.')
+            fetcher_function = fetcher[Provider.FUNC_FULL_NAME].split('.')
 
             # setup for calling the appropriate plugin API...
             provider = importlib.import_module('.'.join(fetcher_function[0:3]))
@@ -38,14 +46,14 @@ class Provider(dict):
             kwarg_dict = dict()
             try:
                 # replace API args and kwargs with CLI provided options...
-                for arg in fetcher[1][0]:
+                for arg in fetcher[Provider.FUNC_PARMS][Provider.FUNC_ARGS]:
                     # build the *args tuple...
                     arg_list.append(Template(arg).substitute(self.template))
-                for key, value in fetcher[1][1].items():
+                for key, value in fetcher[Provider.FUNC_PARMS][Provider.FUNC_KWARGS].items():
                     # build the **kwargs dictionary...
                     kwarg_dict[key] = Template(value).substitute(self.template)
-                function = getattr(provider, fetcher_function[3])
-                    # fault-in the API values...
+                function = getattr(provider, fetcher_function[Provider.FUNC_NAME])
+                # fault-in the API values...
                 super().__setitem__(item, function(*arg_list, **kwarg_dict))
             except Exception as e:
                 raise AssertionError('required option {}, missing'.format(e))
@@ -54,7 +62,7 @@ class Provider(dict):
         return result
 
 
-def cliapi_compile(prov, api_alias=None, scoops={}, options={}, help={}):
+def cliapi_compile(prov, api_alias=None, options={}, help={}):
     # Compile each API supported by the plugin provider as a python
     # function and assemble into the various dictionaries of
     # the "Provider" class.
@@ -67,8 +75,6 @@ def cliapi_compile(prov, api_alias=None, scoops={}, options={}, help={}):
             alias = func.__name__
         else:
             alias = api_alias
-        # assemble more scoops...
-        prov.scoops.update(scoops)
         # assemble more plugin options...
         prov.options.update(options)
         # assemble more help...
@@ -96,6 +102,7 @@ def cliapi_compile(prov, api_alias=None, scoops={}, options={}, help={}):
                 # substitute CLI options...
                 op_default = prov.options.get(arg, default)
                 if op_default.startswith('$'):
+                    # skipping the leading '$'...
                     prov.template[op_default[1:]] = default
                 func_kwargs[arg] = op_default
 
@@ -103,7 +110,8 @@ def cliapi_compile(prov, api_alias=None, scoops={}, options={}, help={}):
         prov.fetchers.update({alias:
                                   (func.__module__ + '.' +
                                    func.__name__,
-                                   (func_args, func_kwargs))
+                                   (func_args, func_kwargs),
+                                   func)
                               })
 
         def do_it(*args, **kwargs):
@@ -121,6 +129,7 @@ def cliapi_compile(prov, api_alias=None, scoops={}, options={}, help={}):
             else:
                 b = kwargs
             return func(*a, **b)
+
         return do_it
 
     return assemble_it
